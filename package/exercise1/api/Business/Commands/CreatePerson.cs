@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using MediatR.Pipeline;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 using StargateAPI.Business.Data;
 using StargateAPI.Controllers;
 
@@ -38,8 +39,20 @@ namespace StargateAPI.Business.Commands
         }
         public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
         {
+            var existing = await _context.People.AsNoTracking().FirstOrDefaultAsync(p => p.Name == request.Name, cancellationToken);
+            
+            if (existing is not null)
+            {
+                return new CreatePersonResult
+                {
+                    Id = existing.Id,
+                    Success = false,
+                    Message = "Person already exists.",
+                    ResponseCode = (int)HttpStatusCode.BadRequest
+                };
 
-                var newPerson = new Person()
+            }
+            var newPerson = new Person()
                 {
                    Name = request.Name
                 };
