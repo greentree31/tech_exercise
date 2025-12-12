@@ -5,14 +5,6 @@ using StargateAPI.Business.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("Angular",
-        p => p.WithOrigins("https://localhost:4200")
-            .AllowAnyHeader()
-            .AllowAnyMethod());
-});
-
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -26,7 +18,13 @@ builder.Services.AddMediatR(cfg =>
     cfg.AddRequestPreProcessor<CreateAstronautDutyPreProcessor>();
     cfg.RegisterServicesFromAssemblies(typeof(Program).Assembly);
 });
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AngularDev", policy =>
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -40,7 +38,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.UseCors("Angular");
+app.UseCors("AngularDe");
 
 app.MapControllers();
 
