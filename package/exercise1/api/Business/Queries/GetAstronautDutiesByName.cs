@@ -14,7 +14,8 @@ namespace StargateAPI.Business.Queries
 {
     public class GetAstronautDutiesByName : IRequest<GetAstronautDutiesByNameResult>
     {
-        public string Name { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
     }
 
     public class GetAstronautDutiesByNameHandler
@@ -37,7 +38,6 @@ namespace StargateAPI.Business.Queries
             var query = @"
         SELECT  
         a.Id AS PersonId,
-        WHERE a.FirstName = @FirstName AND a.LastName = @LastName,
         b.CurrentRank,
         b.CurrentDutyTitle,
         b.CareerStartDate,
@@ -47,7 +47,7 @@ namespace StargateAPI.Business.Queries
         b.PersonId = a.Id WHERE a.FirstName = @FirstName AND a.LastName = @LastName";
 
             var person = await _context.Connection
-                .QueryFirstOrDefaultAsync<PersonAstronautDto>(query, new { Name = request.Name });
+                .QueryFirstOrDefaultAsync<PersonAstronautDto>(query, new { FirstName = request.FirstName, LastName = request.LastName });
 
             if (person is null)
             {
