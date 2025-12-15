@@ -32,12 +32,14 @@ namespace StargateAPI.Business.Data
                     new Person
                     {
                         Id = 1,
-                        Name = "John Doe"
+                        LastName = "Doe",
+                        FirstName = "John"
                     },
                     new Person
                     {
                         Id = 2,
-                        Name = "Jane Doe"
+                        LastName = "Doe",
+                        FirstName = "Jane"
                     }
                 );
 

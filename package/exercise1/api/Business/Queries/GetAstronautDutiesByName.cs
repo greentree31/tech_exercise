@@ -37,7 +37,7 @@ namespace StargateAPI.Business.Queries
             var query = @"
         SELECT  
         a.Id AS PersonId,
-        a.Name AS Name,
+        WHERE a.FirstName = @FirstName AND a.LastName = @LastName
         b.CurrentRank,
         b.CurrentDutyTitle,
         b.CareerStartDate,

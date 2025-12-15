@@ -10,13 +10,16 @@ namespace StargateAPI.Business.Commands
     public class CreateAstronautDuty : IRequest<CreateAstronautDutyResult>
     {
         public required string Name { get; set; }
+
+        public required string LastName { get; set; }
+        public required string FirstName { get; set; }
         public required string Rank { get; set; }
         public required string DutyTitle { get; set; }
         public DateTime DutyStartDate { get; set; }
     }
 
     // ---------------- PRE-PROCESSOR ----------------
-    public class CreateAstronautDutyPreProcessor
+    public class CreateAstronautDutyPreProcessor 
         : IRequestPreProcessor<CreateAstronautDuty>
     {
         private readonly StargateContext _context;
@@ -32,7 +35,7 @@ namespace StargateAPI.Business.Commands
         {
             var person = await _context.People
                 .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Name == request.Name, cancellationToken);
+                .FirstOrDefaultAsync(p => p.LastName == request.LastName, cancellationToken);
 
             if (person == null)
                 throw new BadHttpRequestException("Person does not exist");
@@ -50,7 +53,7 @@ namespace StargateAPI.Business.Commands
     }
 
     // ---------------- HANDLER ----------------
-    public class CreateAstronautDutyHandler
+    public class CreateAstronautDutyHandler 
         : IRequestHandler<CreateAstronautDuty, CreateAstronautDutyResult>
     {
         private readonly StargateContext _context;
@@ -65,7 +68,7 @@ namespace StargateAPI.Business.Commands
             CancellationToken cancellationToken)
         {
             var person = await _context.People
-                .FirstAsync(p => p.Name == request.Name, cancellationToken);
+                .FirstAsync(p => p.LastName == request.Name, cancellationToken);
 
             // Get current astronaut detail (if any)
             var detail = await _context.AstronautDetails

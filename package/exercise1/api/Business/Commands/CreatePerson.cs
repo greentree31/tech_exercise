@@ -9,7 +9,8 @@ namespace StargateAPI.Business.Commands
 {
     public class CreatePerson : IRequest<CreatePersonResult>
     {
-        public required string Name { get; set; } = string.Empty;
+        public required string LastName { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
     }
 
     public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
@@ -21,7 +22,7 @@ namespace StargateAPI.Business.Commands
         }
         public Task Process(CreatePerson request, CancellationToken cancellationToken)
         {
-            var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
+            var person = _context.People.AsNoTracking().FirstOrDefault(z => z.LastName == request.LastName);
 
             if (person is not null) throw new BadHttpRequestException("Bad Request");
 
@@ -39,7 +40,7 @@ namespace StargateAPI.Business.Commands
         }
         public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
         {
-            var existing = await _context.People.AsNoTracking().FirstOrDefaultAsync(p => p.Name == request.Name, cancellationToken);
+            var existing = await _context.People.AsNoTracking().FirstOrDefaultAsync(p => p.LastName == request.LastName, cancellationToken);
             
             if (existing is not null)
             {
@@ -54,7 +55,7 @@ namespace StargateAPI.Business.Commands
             }
             var newPerson = new Person()
                 {
-                   Name = request.Name
+                   LastName = request.LastName
                 };
 
                 await _context.People.AddAsync(newPerson);
