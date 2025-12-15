@@ -1,8 +1,14 @@
 ﻿using Dapper;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
 using StargateAPI.Controllers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace StargateAPI.Business.Queries
 {
@@ -11,7 +17,8 @@ namespace StargateAPI.Business.Queries
         public string Name { get; set; } = string.Empty;
     }
 
-    public class GetAstronautDutiesByNameHandler : IRequestHandler<GetAstronautDutiesByName, GetAstronautDutiesByNameResult>
+    public class GetAstronautDutiesByNameHandler
+        : IRequestHandler<GetAstronautDutiesByName, GetAstronautDutiesByNameResult>
     {
         private readonly StargateContext _context;
 
@@ -20,31 +27,75 @@ namespace StargateAPI.Business.Queries
             _context = context;
         }
 
-        public async Task<GetAstronautDutiesByNameResult> Handle(GetAstronautDutiesByName request, CancellationToken cancellationToken)
+        public async Task<GetAstronautDutiesByNameResult> Handle(
+            GetAstronautDutiesByName request,
+            CancellationToken cancellationToken)
         {
-
             var result = new GetAstronautDutiesByNameResult();
 
-            var query = $"SELECT a.Id as PersonId, a.Name as Name, b.CurrentRank, b.CurrentDutyTitle, b.CareerStartDate, b.CareerEndDate FROM [Person] a LEFT JOIN [AstronautDetail] b on b.PersonId = a.Id WHERE \'{request.Name}\' = a.Name";
+            // Get the person + astronaut summary using Dapper
+            var query = @"
+        SELECT  
+        a.Id AS PersonId,
+        a.Name AS Name,
+        b.CurrentRank,
+        b.CurrentDutyTitle,
+        b.CareerStartDate,
+        b.CareerEndDate FROM [Person] 
+        a LEFT JOIN [AstronautDetail] 
+        b ON 
+        b.PersonId = a.Id WHERE a.Name = @Name";
 
-            var person = await _context.Connection.QueryFirstOrDefaultAsync<PersonAstronaut>(query);
+            var person = await _context.Connection
+                .QueryFirstOrDefaultAsync<PersonAstronautDto>(query, new { Name = request.Name });
+
+            if (person is null)
+            {
+                result.Success = false;
+                result.Message = "Person not found.";
+                result.ResponseCode = 404;
+                return result;
+            }
 
             result.Person = person;
 
-            query = $"SELECT * FROM [AstronautDuty] WHERE {person.PersonId} = PersonId Order By DutyStartDate Desc";
+            // Load all duties for this person using EF Core
+            var duties = await _context.AstronautDuties
+                .Where(d => d.PersonId == person.PersonId)
+                .OrderBy(d => d.DutyStartDate)
+                .ToListAsync(cancellationToken);
 
-            var duties = await _context.Connection.QueryAsync<AstronautDuty>(query);
+            result.Duties = duties
+                .Select(d => new AstronautDutyDto
+                {
+                    Rank = d.Rank,
+                    DutyTitle = d.DutyTitle,
+                    DutyStartDate = d.DutyStartDate,
+                    DutyEndDate = d.DutyEndDate
+                })
+                .ToList();
 
-            result.AstronautDuties = duties.ToList();
+            result.Success = true;
+            result.Message = "Successful";
+            result.ResponseCode = 200;
 
             return result;
-
         }
+    }
+
+    public class AstronautDutyDto
+    {
+        public string Rank { get; set; } = string.Empty;
+        public string DutyTitle { get; set; } = string.Empty;
+        public DateTime DutyStartDate { get; set; }
+        public DateTime? DutyEndDate { get; set; }
     }
 
     public class GetAstronautDutiesByNameResult : BaseResponse
     {
-        public PersonAstronaut Person { get; set; }
-        public List<AstronautDuty> AstronautDuties { get; set; } = new List<AstronautDuty>();
+        public PersonAstronautDto? Person { get; set; }
+
+        // NEW: full duty history
+        public List<AstronautDutyDto> Duties { get; set; } = new();
     }
 }
