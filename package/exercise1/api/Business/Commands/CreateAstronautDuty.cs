@@ -9,8 +9,6 @@ namespace StargateAPI.Business.Commands
 {
     public class CreateAstronautDuty : IRequest<CreateAstronautDutyResult>
     {
-        public required string Name { get; set; }
-
         public required string LastName { get; set; }
         public required string FirstName { get; set; }
         public required string Rank { get; set; }
@@ -35,7 +33,10 @@ namespace StargateAPI.Business.Commands
         {
             var person = await _context.People
                 .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.LastName == request.LastName, cancellationToken);
+                .FirstOrDefaultAsync(p =>
+                    p.LastName == request.LastName &&
+                    p.FirstName == request.FirstName,
+                    cancellationToken);
 
             if (person == null)
                 throw new BadHttpRequestException("Person does not exist");
@@ -68,7 +69,10 @@ namespace StargateAPI.Business.Commands
             CancellationToken cancellationToken)
         {
             var person = await _context.People
-                .FirstAsync(p => p.LastName == request.Name, cancellationToken);
+                .FirstAsync(p =>
+                    p.LastName == request.LastName &&
+                    p.FirstName == request.FirstName,
+                    cancellationToken);
 
             // Get current astronaut detail (if any)
             var detail = await _context.AstronautDetails

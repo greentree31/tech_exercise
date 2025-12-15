@@ -23,7 +23,7 @@ namespace StargateAPI.Business.Queries
         {
             var result = new GetPersonByNameResult();
 
-            var query = $"SELECT a.Id as PersonId, a.Name, b.CurrentRank, b.CurrentDutyTitle, b.CareerStartDate, b.CareerEndDate FROM [Person] a LEFT JOIN [AstronautDetail] b on b.PersonId = a.Id WHERE a.FirstName = @FirstName AND a.LastName = @LastName"
+            var query = $"SELECT a.Id as PersonId, WHERE a.FirstName = @FirstName AND a.LastName = @LastName, b.CurrentRank, b.CurrentDutyTitle, b.CareerStartDate, b.CareerEndDate FROM [Person] a LEFT JOIN [AstronautDetail] b on b.PersonId = a.Id WHERE a.FirstName = @FirstName AND a.LastName = @LastName"
                 .Replace("@FirstName", $"'{request.Name.Split(' ')[0]}'")
                 .Replace("@LastName", $"'{request.Name.Split(' ')[1]}'")
 ;

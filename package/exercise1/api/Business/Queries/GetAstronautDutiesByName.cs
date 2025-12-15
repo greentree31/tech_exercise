@@ -37,14 +37,14 @@ namespace StargateAPI.Business.Queries
             var query = @"
         SELECT  
         a.Id AS PersonId,
-        WHERE a.FirstName = @FirstName AND a.LastName = @LastName
+        WHERE a.FirstName = @FirstName AND a.LastName = @LastName,
         b.CurrentRank,
         b.CurrentDutyTitle,
         b.CareerStartDate,
         b.CareerEndDate FROM [Person] 
         a LEFT JOIN [AstronautDetail] 
         b ON 
-        b.PersonId = a.Id WHERE a.Name = @Name";
+        b.PersonId = a.Id WHERE a.FirstName = @FirstName AND a.LastName = @LastName";
 
             var person = await _context.Connection
                 .QueryFirstOrDefaultAsync<PersonAstronautDto>(query, new { Name = request.Name });
